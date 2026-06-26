@@ -9,6 +9,7 @@ app = FastAPI()
 
 origins = [
     "http://localhost:5173",
+    "https://students-prediction-model.vercel.app",
 ]
 
 frontend = os.getenv("FRONTEND_URL")

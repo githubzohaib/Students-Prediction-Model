@@ -1,25 +1,22 @@
+from config.ml_model import model
 import numpy as np
 
-from config.ml_model import model
+def predict_score(study_hours, attendance, participation):
 
-def predict_score(
-    study_hours,
-    attendance,
-    participation
-):
+    if study_hours == 0 and attendance == 0 and participation == 0:
+        return 0.0
 
-    features = np.array(
-        [
-            [
-                study_hours,
-                attendance,
-                participation
-            ]
-        ]
-    )
+    if attendance < 50:
+        attendance = 50
 
-    prediction = model.predict(features)
+    features = np.array([[
+        study_hours,
+        attendance,
+        participation
+    ]])
 
-    return float(
-        prediction[0]
-    )
+    prediction = model.predict(features)[0]
+
+    prediction = max(0, min(100, prediction))
+
+    return float(prediction)

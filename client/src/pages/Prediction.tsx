@@ -93,7 +93,7 @@ function Prediction(): JSX.Element {
           </svg>
           <input
             type="number"
-            placeholder="Participation (1-10)"
+            placeholder="Participation in Class (1-10)"
             value={participation}
             onChange={handleParticipationChange}
           />

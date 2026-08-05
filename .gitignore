@@ -37,9 +37,10 @@ venv/
 # Environment variables
 .env
 
-# Trained model artifacts ARE committed (~3.7MB, built with --lite) so that a
-# deploy needs nothing but `pip install`. Regenerate with:
-#     python model/train_model.py --lite
-# A full-fidelity local run (`python model/train_model.py`, ~51s on 1M rows)
-# produces ~54MB of pickles -- do not commit those.
-server/model/artifacts/*.pkl.full
+# NOTE: server/model/artifacts/ is deliberately NOT ignored -- the --lite
+# artifacts (~3.7MB) are committed so a deploy needs nothing but `pip install`.
+# Regenerate them with `python model/train_model.py --lite`.
+#
+# A full-fidelity run (`python model/train_model.py`) overwrites them with
+# ~54MB of pickles that must not be committed. Git cannot tell the two apart
+# -- same filenames -- so check `git status` before committing after training.

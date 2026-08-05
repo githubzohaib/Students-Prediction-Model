@@ -8,14 +8,14 @@ artifact the API needs at inference time:
     artifacts/background.npy    background sample used for exact Shapley values
     artifacts/metadata.json     metrics, feature schema, signal audit, analytics
 
-Run:  python model/train_model.py [--sample N] [--quick]
+Run:  python model/train_model.py [--sample N] [--quick] [--lite]
 """
 
 from __future__ import annotations
 
 import argparse
+import gc
 import json
-import os
 import platform
 import sys
 import time
@@ -46,9 +46,39 @@ CSV_PATH = CURRENT_DIR / "student_performance_1M.csv"
 
 RANDOM_STATE = 42
 BACKGROUND_SIZE = 128
-IMPORTANCE_SAMPLE = 25_000
-CV_SAMPLE = 60_000
 HIST_BINS = 24
+
+# Every knob that has to shrink when the pipeline runs somewhere small.
+FULL_PROFILE = {
+    "sample": 0,              # 0 = whole dataset
+    "trees": 90,
+    "rf_depth": 14,
+    "et_depth": 16,
+    "min_samples_leaf": 10,
+    "hist_max_iter": 200,
+    "cv_sample": 60_000,
+    "importance_sample": 25_000,
+    "n_jobs": -1,
+}
+
+QUICK_OVERRIDES = {"trees": 40, "hist_max_iter": 80}
+
+# --lite is what the Render build uses. A 512MB container has to survive both
+# the fit *and* serving the result: at full depth a single forest expands to
+# roughly 200MB of tree nodes once the API loads it. Capping depth and leaf
+# size keeps each artifact in the low megabytes, and on this dataset it costs
+# almost nothing -- all three tree models land within 0.001 R2 of each other.
+LITE_OVERRIDES = {
+    "sample": 150_000,
+    "trees": 40,
+    "rf_depth": 12,
+    "et_depth": 12,
+    "min_samples_leaf": 25,
+    "hist_max_iter": 150,
+    "cv_sample": 25_000,
+    "importance_sample": 10_000,
+    "n_jobs": 1,             # processes would each copy the training matrix
+}
 
 FEATURES = [
     {
@@ -95,10 +125,13 @@ def log(msg: str) -> None:
 # Model zoo
 # --------------------------------------------------------------------------
 
-def build_candidates(quick: bool) -> list[dict]:
+def build_candidates(profile: dict) -> list[dict]:
     """Candidate estimators. Kept deliberately small so that inference-time
     Shapley/ICE sweeps (hundreds of forward passes per request) stay fast."""
-    n_trees = 40 if quick else 90
+    n_trees = profile["trees"]
+    leaf = profile["min_samples_leaf"]
+    split = leaf * 2
+    n_jobs = profile["n_jobs"]
 
     return [
         {
@@ -109,12 +142,12 @@ def build_candidates(quick: bool) -> list[dict]:
             "notes": "Champion candidate. Per-tree spread gives calibrated prediction intervals.",
             "estimator": RandomForestRegressor(
                 n_estimators=n_trees,
-                max_depth=14,
-                min_samples_split=20,
-                min_samples_leaf=10,
+                max_depth=profile["rf_depth"],
+                min_samples_split=split,
+                min_samples_leaf=leaf,
                 max_features=None,
                 random_state=RANDOM_STATE,
-                n_jobs=-1,
+                n_jobs=n_jobs,
             ),
         },
         {
@@ -125,11 +158,11 @@ def build_candidates(quick: bool) -> list[dict]:
             "notes": "Extremely randomised splits; lower variance, slightly higher bias.",
             "estimator": ExtraTreesRegressor(
                 n_estimators=n_trees,
-                max_depth=16,
-                min_samples_split=20,
-                min_samples_leaf=10,
+                max_depth=profile["et_depth"],
+                min_samples_split=split,
+                min_samples_leaf=leaf,
                 random_state=RANDOM_STATE,
-                n_jobs=-1,
+                n_jobs=n_jobs,
             ),
         },
         {
@@ -139,7 +172,7 @@ def build_candidates(quick: bool) -> list[dict]:
             "supports_tree_interval": False,
             "notes": "Histogram-binned boosting; scales to the full 1M rows in seconds.",
             "estimator": HistGradientBoostingRegressor(
-                max_iter=200 if not quick else 80,
+                max_iter=profile["hist_max_iter"],
                 learning_rate=0.1,
                 max_depth=8,
                 min_samples_leaf=40,
@@ -198,9 +231,11 @@ def evaluate(model, X_test: np.ndarray, y_test: np.ndarray) -> dict:
     }
 
 
-def cross_validate(estimator, X: np.ndarray, y: np.ndarray, rng: np.random.Generator) -> dict:
+def cross_validate(
+    estimator, X: np.ndarray, y: np.ndarray, rng: np.random.Generator, cv_sample: int
+) -> dict:
     """3-fold CV on a subsample -- full-data CV on 1M rows is not worth the wall time."""
-    n = min(CV_SAMPLE, len(X))
+    n = min(cv_sample, len(X))
     idx = rng.choice(len(X), size=n, replace=False)
     cv = KFold(n_splits=3, shuffle=True, random_state=RANDOM_STATE)
     scores = cross_val_score(estimator, X[idx], y[idx], cv=cv, scoring="r2", n_jobs=1)
@@ -332,6 +367,7 @@ def build_signal_audit(
     X_test: np.ndarray,
     y_test: np.ndarray,
     rng: np.random.Generator,
+    profile: dict,
 ) -> list[dict]:
     """Per-feature evidence of predictive signal.
 
@@ -339,13 +375,13 @@ def build_signal_audit(
     actually carries information about the target. Rather than hiding that,
     the API ships the evidence and the UI reports it.
     """
-    n = min(IMPORTANCE_SAMPLE, len(X_test))
+    n = min(profile["importance_sample"], len(X_test))
     idx = rng.choice(len(X_test), size=n, replace=False)
     Xs, ys = X_test[idx], y_test[idx]
 
     perm = permutation_importance(
-        champion, Xs, ys, n_repeats=5, random_state=RANDOM_STATE, n_jobs=-1,
-        scoring="r2",
+        champion, Xs, ys, n_repeats=5, random_state=RANDOM_STATE,
+        n_jobs=profile["n_jobs"], scoring="r2",
     )
 
     mi = mutual_info_regression(Xs, ys, random_state=RANDOM_STATE)
@@ -374,12 +410,12 @@ def build_signal_audit(
     return audit
 
 
-def build_feature_importance(champion, X_test, y_test, rng) -> list[dict]:
-    n = min(IMPORTANCE_SAMPLE, len(X_test))
+def build_feature_importance(champion, X_test, y_test, rng, profile: dict) -> list[dict]:
+    n = min(profile["importance_sample"], len(X_test))
     idx = rng.choice(len(X_test), size=n, replace=False)
     perm = permutation_importance(
         champion, X_test[idx], y_test[idx], n_repeats=5,
-        random_state=RANDOM_STATE, n_jobs=-1, scoring="r2",
+        random_state=RANDOM_STATE, n_jobs=profile["n_jobs"], scoring="r2",
     )
     raw = np.clip(perm.importances_mean, 0, None)
     total = raw.sum() or 1.0
@@ -405,11 +441,22 @@ def build_feature_importance(champion, X_test, y_test, rng) -> list[dict]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Train the student performance models.")
-    parser.add_argument("--sample", type=int, default=0,
+    parser.add_argument("--sample", type=int, default=None,
                         help="Train on a random subsample of N rows (0 = full dataset).")
     parser.add_argument("--quick", action="store_true",
                         help="Smaller ensembles for a fast iteration loop.")
+    parser.add_argument("--lite", action="store_true",
+                        help="Memory-constrained preset for deployment builds "
+                             "(512MB containers). Smaller sample, shallower trees.")
     args = parser.parse_args()
+
+    profile = dict(FULL_PROFILE)
+    if args.quick:
+        profile.update(QUICK_OVERRIDES)
+    if args.lite:
+        profile.update(LITE_OVERRIDES)
+    if args.sample is not None:      # explicit --sample always wins
+        profile["sample"] = args.sample
 
     if not CSV_PATH.exists():
         log(f"ERROR: dataset not found at {CSV_PATH}")
@@ -418,12 +465,23 @@ def main() -> int:
     rng = np.random.default_rng(RANDOM_STATE)
     started = time.time()
 
+    if args.lite:
+        log("Lite profile: " + ", ".join(f"{k}={v}" for k, v in sorted(profile.items())))
+
     log(f"Loading {CSV_PATH.name} ...")
-    data = pd.read_csv(CSV_PATH)
+    # Only the five columns the pipeline touches, at half width. Reading the
+    # full frame costs several hundred MB, which a small build container does
+    # not have to spare.
+    data = pd.read_csv(
+        CSV_PATH,
+        usecols=FEATURE_COLUMNS + [TARGET_COLUMN, "grade"],
+        dtype={col: np.float32 for col in FEATURE_COLUMNS + [TARGET_COLUMN]},
+    )
     data = data.dropna(subset=FEATURE_COLUMNS + [TARGET_COLUMN, "grade"])
 
-    if args.sample and args.sample < len(data):
-        data = data.sample(args.sample, random_state=RANDOM_STATE).reset_index(drop=True)
+    if profile["sample"] and profile["sample"] < len(data):
+        data = data.sample(profile["sample"], random_state=RANDOM_STATE).reset_index(drop=True)
+        gc.collect()
 
     log(f"Dataset: {len(data):,} rows x {len(FEATURE_COLUMNS)} features")
 
@@ -437,10 +495,10 @@ def main() -> int:
 
     ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
 
-    trained: dict[str, object] = {}
+    artifact_paths: dict[str, Path] = {}
     model_records: list[dict] = []
 
-    for spec in build_candidates(args.quick):
+    for spec in build_candidates(profile):
         log(f"Fitting {spec['label']} ...")
         estimator = spec["estimator"]
 
@@ -449,14 +507,16 @@ def main() -> int:
         fit_seconds = time.time() - t0
 
         metrics = evaluate(estimator, X_test, y_test)
-        metrics.update(cross_validate(clone(estimator), X_train, y_train, rng))
+        metrics.update(cross_validate(clone(estimator), X_train, y_train, rng,
+                                      profile["cv_sample"]))
         metrics["train_seconds"] = round(fit_seconds, 2)
 
         log(f"  R2={metrics['r2']:.4f}  MAE={metrics['mae']:.3f}  "
             f"RMSE={metrics['rmse']:.3f}  ({fit_seconds:.1f}s)")
 
-        joblib.dump(estimator, ARTIFACT_DIR / f"{spec['key']}.pkl", compress=3)
-        trained[spec["key"]] = estimator
+        path = ARTIFACT_DIR / f"{spec['key']}.pkl"
+        joblib.dump(estimator, path, compress=3)
+        artifact_paths[spec["key"]] = path
 
         model_records.append({
             "key": spec["key"],
@@ -469,9 +529,16 @@ def main() -> int:
             "hyperparameters": describe_hyperparameters(estimator),
         })
 
+        # The fitted model is on disk now, and holding four ensembles at once
+        # is what pushes a small container over its memory limit. Drop both
+        # references (the spec dict keeps one alive) and reload the winner.
+        spec["estimator"] = None
+        del estimator
+        gc.collect()
+
     champion_record = max(model_records, key=lambda m: m["metrics"]["r2"])
     champion_key = champion_record["key"]
-    champion = trained[champion_key]
+    champion = joblib.load(artifact_paths[champion_key])
     log(f"Champion: {champion_record['label']} (R2={champion_record['metrics']['r2']:.4f})")
 
     # Background sample for exact Shapley attribution at inference time.
@@ -480,8 +547,8 @@ def main() -> int:
     np.save(ARTIFACT_DIR / "background.npy", background)
 
     log("Computing permutation importance and signal audit ...")
-    feature_importance = build_feature_importance(champion, X_test, y_test, rng)
-    signal_audit = build_signal_audit(data, champion, X_test, y_test, rng)
+    feature_importance = build_feature_importance(champion, X_test, y_test, rng, profile)
+    signal_audit = build_signal_audit(data, champion, X_test, y_test, rng, profile)
 
     for entry in signal_audit:
         log(f"  {entry['label']}: r={entry['pearson_r']:+.4f} "
@@ -509,6 +576,7 @@ def main() -> int:
             "test_rows": int(len(X_test)),
             "test_size": 0.2,
             "random_state": RANDOM_STATE,
+            "profile": "lite" if args.lite else ("quick" if args.quick else "full"),
         },
         "features": build_feature_schema(data),
         "target": {

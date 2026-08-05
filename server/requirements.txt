@@ -1,9 +1,13 @@
-fastapi
-uvicorn
-pandas
-numpy
-scikit-learn
-joblib
-pydantic
-python-multipart
-python-dotenv
+# Pinned: the API loads pickles produced by model/train_model.py, so the
+# training and serving environments have to agree on scikit-learn/numpy.
+fastapi==0.141.1
+uvicorn==0.52.1
+pydantic==2.13.4
+python-multipart==0.0.32
+python-dotenv==1.2.2
+
+numpy==2.5.1
+pandas==3.0.5
+scipy==1.18.0
+scikit-learn==1.9.0
+joblib==1.5.3

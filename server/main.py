@@ -83,7 +83,10 @@ async def artifacts_missing_handler(request: Request, exc: ArtifactsMissingError
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         content={
             "detail": str(exc),
-            "hint": "Run `python model/train_model.py` to generate the artifacts.",
+            "hint": "Artifacts are built, not committed. Locally: "
+                    "`python model/train_model.py`. On Render this is the "
+                    "build command (`... && python model/train_model.py --lite`) "
+                    "-- check the build log.",
         },
     )
 
@@ -96,7 +99,9 @@ def health():
             content={
                 "status": "degraded",
                 "reason": "Model artifacts not loaded.",
-                "hint": "Run `python model/train_model.py`.",
+                "hint": "Training did not run. Locally: "
+                        "`python model/train_model.py`; on Render, see the "
+                        "build command in render.yaml.",
             },
         )
 

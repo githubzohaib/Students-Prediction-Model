@@ -131,8 +131,31 @@ python model/train_model.py          # ~51s on 1M rows; writes model/artifacts/
 python -m uvicorn main:app --reload --port 8000
 ```
 
-`train_model.py` accepts `--sample N` to train on a subsample and `--quick` for
-smaller ensembles during iteration.
+`train_model.py` accepts `--sample N` to train on a subsample, `--quick` for
+smaller ensembles during iteration, and `--lite` for the memory-constrained
+preset used by the deployment build (see below).
+
+### Deploying the backend
+
+The trained artifacts are **not** committed — they are ~54MB of pickles, so
+`.gitignore` excludes `server/model/artifacts/`. Production regenerates them
+from the committed dataset at build time; `render.yaml` at the repo root
+declares this:
+
+```yaml
+buildCommand: pip install --no-cache-dir -r requirements.txt && python model/train_model.py --lite
+startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
+```
+
+If the service was created through the Render dashboard rather than from the
+blueprint, set that **Build Command** on the service directly — otherwise the
+API boots with no artifacts and every endpoint returns
+`503 Model registry has not been loaded`.
+
+`--lite` trains on 150k rows with shallower trees. It exists because the free
+plan caps a service at 512MB: at full depth the four ensembles occupy ~186MB of
+tree nodes once loaded, versus ~27MB under `--lite`, and it costs about 0.001
+R² on this dataset. Drop the flag on a paid plan.
 
 Interactive API docs: <http://localhost:8000/docs>
 

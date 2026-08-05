@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: student-prediction-api
+    runtime: python
+    plan: free
+    rootDir: server
+    # The trained artifacts are not in git (~54MB of pickles), so the build
+    # regenerates them from the committed dataset. --lite keeps the fit and
+    # the resulting models inside a 512MB instance; drop it on a paid plan.
+    buildCommand: pip install --no-cache-dir -r requirements.txt && python model/train_model.py --lite
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: FRONTEND_URL
+        value: https://students-prediction-model.vercel.app

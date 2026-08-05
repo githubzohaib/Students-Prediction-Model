@@ -36,3 +36,7 @@ venv/
 
 # Environment variables
 .env
+
+# Trained model artifacts -- regenerate with `python model/train_model.py`
+# (~51s on the full dataset). Kept out of git: ~52MB of binary pickles.
+server/model/artifacts/

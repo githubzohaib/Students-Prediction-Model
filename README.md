@@ -137,25 +137,29 @@ preset used by the deployment build (see below).
 
 ### Deploying the backend
 
-The trained artifacts are **not** committed — they are ~54MB of pickles, so
-`.gitignore` excludes `server/model/artifacts/`. Production regenerates them
-from the committed dataset at build time; `render.yaml` at the repo root
-declares this:
+The `--lite` artifacts are **committed** under `server/model/artifacts/` (~3.7MB),
+so a deploy needs nothing but `pip install -r requirements.txt`. There is no
+build-time training step and no dashboard configuration to get wrong.
 
-```yaml
-buildCommand: pip install --no-cache-dir -r requirements.txt && python model/train_model.py --lite
-startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
-```
-
-If the service was created through the Render dashboard rather than from the
-blueprint, set that **Build Command** on the service directly — otherwise the
-API boots with no artifacts and every endpoint returns
-`503 Model registry has not been loaded`.
+This is why `requirements.txt` pins `scikit-learn`, `numpy` and `scipy` exactly,
+and why `server/.python-version` exists: the committed pickles must be unpickled
+by the same library versions that wrote them. **If you retrain, regenerate with
+`--lite` and commit the result** — a full-fidelity run produces ~54MB of pickles
+that must not be committed.
 
 `--lite` trains on 150k rows with shallower trees. It exists because the free
 plan caps a service at 512MB: at full depth the four ensembles occupy ~186MB of
 tree nodes once loaded, versus ~27MB under `--lite`, and it costs about 0.001
-R² on this dataset. Drop the flag on a paid plan.
+R² on this dataset. On a paid plan you can train full-fidelity at build time
+instead by setting the build command to:
+
+```
+pip install --no-cache-dir -r requirements.txt && python model/train_model.py
+```
+
+If every endpoint returns `503 Model registry has not been loaded`, the
+artifacts did not reach the container — check that `server/model/artifacts/`
+is present in the deployed commit.
 
 Interactive API docs: <http://localhost:8000/docs>
 

@@ -4,10 +4,15 @@ services:
     runtime: python
     plan: free
     rootDir: server
-    # The trained artifacts are not in git (~54MB of pickles), so the build
-    # regenerates them from the committed dataset. --lite keeps the fit and
-    # the resulting models inside a 512MB instance; drop it on a paid plan.
-    buildCommand: pip install --no-cache-dir -r requirements.txt && python model/train_model.py --lite
+    # The --lite artifacts (~3.7MB) are committed under model/artifacts/, so a
+    # deploy only has to install dependencies. This deliberately matches the
+    # default build command: the service works without any dashboard change.
+    #
+    # To build the models fresh instead of shipping them, append:
+    #     && python model/train_model.py --lite
+    # Do not drop --lite on the free plan -- full-depth ensembles need ~186MB
+    # of tree nodes once loaded, against a 512MB cap.
+    buildCommand: pip install --no-cache-dir -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
     healthCheckPath: /health
     envVars:

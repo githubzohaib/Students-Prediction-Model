@@ -1,0 +1,1373 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-08-05T22:17:38+00:00",
+  "environment": {
+    "python": "3.12.10",
+    "scikit_learn": "1.9.0",
+    "numpy": "2.5.1",
+    "pandas": "3.0.5"
+  },
+  "dataset": {
+    "source": "student_performance_1M.csv",
+    "rows": 150000,
+    "train_rows": 120000,
+    "test_rows": 30000,
+    "test_size": 0.2,
+    "random_state": 42,
+    "profile": "lite"
+  },
+  "features": [
+    {
+      "key": "study_hours",
+      "label": "Weekly Self-Study Hours",
+      "short": "Study Hours",
+      "unit": "hrs/week",
+      "step": 0.5,
+      "description": "Hours the student studies independently each week.",
+      "column": "weekly_self_study_hours",
+      "min": 0.0,
+      "max": 40.0,
+      "p1": 0.0,
+      "p25": 10.199999809265137,
+      "median": 15.0,
+      "p75": 19.700000762939453,
+      "p99": 31.200000762939453,
+      "mean": 15.026811599731445,
+      "std": 6.900400638580322
+    },
+    {
+      "key": "attendance",
+      "label": "Attendance",
+      "short": "Attendance",
+      "unit": "%",
+      "step": 1.0,
+      "description": "Share of scheduled classes the student attended.",
+      "column": "attendance_percentage",
+      "min": 50.0,
+      "max": 100.0,
+      "p1": 61.79999923706055,
+      "p25": 78.19999694824219,
+      "median": 85.0,
+      "p75": 91.69999694824219,
+      "p99": 100.0,
+      "mean": 84.67233276367188,
+      "std": 9.440153121948242
+    },
+    {
+      "key": "participation",
+      "label": "Class Participation",
+      "short": "Participation",
+      "unit": "/ 10",
+      "step": 0.1,
+      "description": "Instructor-rated in-class participation score.",
+      "column": "class_participation",
+      "min": 0.0,
+      "max": 10.0,
+      "p1": 1.2999999523162842,
+      "p25": 4.599999904632568,
+      "median": 6.0,
+      "p75": 7.300000190734863,
+      "p99": 10.0,
+      "mean": 5.9765706062316895,
+      "std": 1.9539178609848022
+    }
+  ],
+  "target": {
+    "key": "total_score",
+    "label": "Final Score",
+    "min": 17.899999618530273,
+    "max": 100.0,
+    "mean": 84.31709466823578,
+    "std": 15.425354687020343
+  },
+  "grades": [
+    {
+      "grade": "A",
+      "min": 85.0,
+      "max": 100.0,
+      "count": 82475,
+      "share": 0.5498333333333333
+    },
+    {
+      "grade": "B",
+      "min": 70.0,
+      "max": 85.0,
+      "count": 38550,
+      "share": 0.257
+    },
+    {
+      "grade": "C",
+      "min": 55.0,
+      "max": 70.0,
+      "count": 21323,
+      "share": 0.14215333333333333
+    },
+    {
+      "grade": "D",
+      "min": 40.0,
+      "max": 55.0,
+      "count": 6751,
+      "share": 0.04500666666666667
+    },
+    {
+      "grade": "F",
+      "min": 17.899999618530273,
+      "max": 40.0,
+      "count": 901,
+      "share": 0.006006666666666667
+    }
+  ],
+  "models": [
+    {
+      "key": "random_forest",
+      "label": "Random Forest",
+      "family": "Bagged decision trees",
+      "notes": "Champion candidate. Per-tree spread gives calibrated prediction intervals.",
+      "supports_tree_interval": true,
+      "metrics": {
+        "r2": 0.71466,
+        "mae": 6.14363,
+        "rmse": 8.23831,
+        "mape": 8.22582,
+        "residual_std": 8.23831,
+        "max_error": 39.34319,
+        "within_5_points": 51.95,
+        "within_10_points": 78.45667,
+        "cv_r2_mean": 0.71262,
+        "cv_r2_std": 0.00377,
+        "cv_folds": 3,
+        "cv_sample": 25000,
+        "train_seconds": 5.71
+      },
+      "hyperparameters": {
+        "max_depth": 12,
+        "max_features": "None",
+        "min_samples_leaf": 25,
+        "min_samples_split": 50,
+        "n_estimators": 40
+      }
+    },
+    {
+      "key": "extra_trees",
+      "label": "Extra Trees",
+      "family": "Randomised decision trees",
+      "notes": "Extremely randomised splits; lower variance, slightly higher bias.",
+      "supports_tree_interval": true,
+      "metrics": {
+        "r2": 0.71655,
+        "mae": 6.12186,
+        "rmse": 8.21097,
+        "mape": 8.19886,
+        "residual_std": 8.21095,
+        "max_error": 39.54111,
+        "within_5_points": 52.14,
+        "within_10_points": 78.59333,
+        "cv_r2_mean": 0.71261,
+        "cv_r2_std": 0.00119,
+        "cv_folds": 3,
+        "cv_sample": 25000,
+        "train_seconds": 2.04
+      },
+      "hyperparameters": {
+        "max_depth": 12,
+        "max_features": 1.0,
+        "min_samples_leaf": 25,
+        "min_samples_split": 50,
+        "n_estimators": 40
+      }
+    },
+    {
+      "key": "hist_gradient_boosting",
+      "label": "Hist Gradient Boosting",
+      "family": "Boosted histogram trees",
+      "notes": "Histogram-binned boosting; scales to the full 1M rows in seconds.",
+      "supports_tree_interval": false,
+      "metrics": {
+        "r2": 0.71645,
+        "mae": 6.14178,
+        "rmse": 8.21244,
+        "mape": 8.22577,
+        "residual_std": 8.21242,
+        "max_error": 39.25618,
+        "within_5_points": 51.70333,
+        "within_10_points": 78.56,
+        "cv_r2_mean": 0.71711,
+        "cv_r2_std": 0.0047,
+        "cv_folds": 3,
+        "cv_sample": 25000,
+        "train_seconds": 1.95
+      },
+      "hyperparameters": {
+        "early_stopping": true,
+        "learning_rate": 0.1,
+        "max_depth": 8,
+        "max_features": 1.0,
+        "max_iter": 150,
+        "min_samples_leaf": 40
+      }
+    },
+    {
+      "key": "ridge",
+      "label": "Ridge Regression",
+      "family": "Regularised linear model",
+      "notes": "Interpretable linear baseline. Quantifies how much non-linearity buys.",
+      "supports_tree_interval": false,
+      "metrics": {
+        "r2": 0.65895,
+        "mae": 7.17956,
+        "rmse": 9.00663,
+        "mape": 9.41197,
+        "residual_std": 9.00661,
+        "max_error": 42.03958,
+        "within_5_points": 41.79,
+        "within_10_points": 73.50667,
+        "cv_r2_mean": 0.65921,
+        "cv_r2_std": 0.00034,
+        "cv_folds": 3,
+        "cv_sample": 25000,
+        "train_seconds": 0.03
+      },
+      "hyperparameters": {
+        "alpha": 1.0,
+        "max_iter": "None"
+      }
+    }
+  ],
+  "champion": "extra_trees",
+  "baseline_prediction": 86.9694,
+  "background_size": 128,
+  "feature_importance": [
+    {
+      "feature": "study_hours",
+      "label": "Weekly Self-Study Hours",
+      "permutation_importance": 1.43083,
+      "permutation_share": 1.0,
+      "impurity_importance": 0.9979,
+      "std": 0.02059
+    },
+    {
+      "feature": "attendance",
+      "label": "Attendance",
+      "permutation_importance": 0.0,
+      "permutation_share": 0.0,
+      "impurity_importance": 0.0011,
+      "std": 0.0001
+    },
+    {
+      "feature": "participation",
+      "label": "Class Participation",
+      "permutation_importance": 0.0,
+      "permutation_share": 0.0,
+      "impurity_importance": 0.0011,
+      "std": 0.00012
+    }
+  ],
+  "signal_audit": [
+    {
+      "feature": "study_hours",
+      "label": "Weekly Self-Study Hours",
+      "pearson_r": 0.8128,
+      "spearman_r": 0.8455,
+      "mutual_information": 0.6118,
+      "permutation_r2_drop": 1.44492,
+      "permutation_r2_drop_std": 0.01242,
+      "verdict": "predictive"
+    },
+    {
+      "feature": "attendance",
+      "label": "Attendance",
+      "pearson_r": -0.0027,
+      "spearman_r": -0.0022,
+      "mutual_information": 0.0,
+      "permutation_r2_drop": -3e-05,
+      "permutation_r2_drop_std": 0.00014,
+      "verdict": "no-signal"
+    },
+    {
+      "feature": "participation",
+      "label": "Class Participation",
+      "pearson_r": 0.0022,
+      "spearman_r": 0.0028,
+      "mutual_information": 0.0,
+      "permutation_r2_drop": 8e-05,
+      "permutation_r2_drop_std": 0.00015,
+      "verdict": "no-signal"
+    }
+  ],
+  "analytics": {
+    "histograms": {
+      "study_hours": {
+        "edges": [
+          0.0,
+          1.667,
+          3.333,
+          5.0,
+          6.667,
+          8.333,
+          10.0,
+          11.667,
+          13.333,
+          15.0,
+          16.667,
+          18.333,
+          20.0,
+          21.667,
+          23.333,
+          25.0,
+          26.667,
+          28.333,
+          30.0,
+          31.667,
+          33.333,
+          35.0,
+          36.667,
+          38.333,
+          40.0
+        ],
+        "centers": [
+          0.833,
+          2.5,
+          4.167,
+          5.833,
+          7.5,
+          9.167,
+          10.833,
+          12.5,
+          14.167,
+          15.833,
+          17.5,
+          19.167,
+          20.833,
+          22.5,
+          24.167,
+          25.833,
+          27.5,
+          29.167,
+          30.833,
+          32.5,
+          34.167,
+          35.833,
+          37.5,
+          39.167
+        ],
+        "counts": [
+          4301,
+          2962,
+          4062,
+          6181,
+          8296,
+          9697,
+          12123,
+          13484,
+          13323,
+          14432,
+          13619,
+          11627,
+          10268,
+          8294,
+          5822,
+          4404,
+          2883,
+          1818,
+          1123,
+          642,
+          311,
+          185,
+          78,
+          65
+        ]
+      },
+      "attendance": {
+        "edges": [
+          50.0,
+          52.083,
+          54.167,
+          56.25,
+          58.333,
+          60.417,
+          62.5,
+          64.583,
+          66.667,
+          68.75,
+          70.833,
+          72.917,
+          75.0,
+          77.083,
+          79.167,
+          81.25,
+          83.333,
+          85.417,
+          87.5,
+          89.583,
+          91.667,
+          93.75,
+          95.833,
+          97.917,
+          100.0
+        ],
+        "centers": [
+          51.042,
+          53.125,
+          55.208,
+          57.292,
+          59.375,
+          61.458,
+          63.542,
+          65.625,
+          67.708,
+          69.792,
+          71.875,
+          73.958,
+          76.042,
+          78.125,
+          80.208,
+          82.292,
+          84.375,
+          86.458,
+          88.542,
+          90.625,
+          92.708,
+          94.792,
+          96.875,
+          98.958
+        ],
+        "counts": [
+          83,
+          80,
+          153,
+          262,
+          468,
+          761,
+          1296,
+          1996,
+          2829,
+          4007,
+          5401,
+          6488,
+          8424,
+          9942,
+          11235,
+          11910,
+          12452,
+          11745,
+          11935,
+          10738,
+          9346,
+          7698,
+          6170,
+          14581
+        ]
+      },
+      "participation": {
+        "edges": [
+          0.0,
+          0.417,
+          0.833,
+          1.25,
+          1.667,
+          2.083,
+          2.5,
+          2.917,
+          3.333,
+          3.75,
+          4.167,
+          4.583,
+          5.0,
+          5.417,
+          5.833,
+          6.25,
+          6.667,
+          7.083,
+          7.5,
+          7.917,
+          8.333,
+          8.75,
+          9.167,
+          9.583,
+          10.0
+        ],
+        "centers": [
+          0.208,
+          0.625,
+          1.042,
+          1.458,
+          1.875,
+          2.292,
+          2.708,
+          3.125,
+          3.542,
+          3.958,
+          4.375,
+          4.792,
+          5.208,
+          5.625,
+          6.042,
+          6.458,
+          6.875,
+          7.292,
+          7.708,
+          8.125,
+          8.542,
+          8.958,
+          9.375,
+          9.792
+        ],
+        "counts": [
+          409,
+          328,
+          588,
+          905,
+          1404,
+          2094,
+          3846,
+          4287,
+          5603,
+          7074,
+          8583,
+          10101,
+          13743,
+          11844,
+          11988,
+          11544,
+          10983,
+          9727,
+          10383,
+          6759,
+          5339,
+          3963,
+          2869,
+          5636
+        ]
+      }
+    },
+    "target_histogram": {
+      "edges": [
+        17.9,
+        20.637,
+        23.373,
+        26.11,
+        28.847,
+        31.583,
+        34.32,
+        37.057,
+        39.793,
+        42.53,
+        45.267,
+        48.003,
+        50.74,
+        53.477,
+        56.213,
+        58.95,
+        61.687,
+        64.423,
+        67.16,
+        69.897,
+        72.633,
+        75.37,
+        78.107,
+        80.843,
+        83.58,
+        86.317,
+        89.053,
+        91.79,
+        94.527,
+        97.263,
+        100.0
+      ],
+      "centers": [
+        19.268,
+        22.005,
+        24.742,
+        27.478,
+        30.215,
+        32.952,
+        35.688,
+        38.425,
+        41.162,
+        43.898,
+        46.635,
+        49.372,
+        52.108,
+        54.845,
+        57.582,
+        60.318,
+        63.055,
+        65.792,
+        68.528,
+        71.265,
+        74.002,
+        76.738,
+        79.475,
+        82.212,
+        84.948,
+        87.685,
+        90.422,
+        93.158,
+        95.895,
+        98.632
+      ],
+      "counts": [
+        5,
+        11,
+        15,
+        45,
+        64,
+        133,
+        232,
+        352,
+        516,
+        772,
+        1068,
+        1392,
+        1810,
+        2320,
+        2791,
+        3380,
+        4123,
+        4434,
+        5197,
+        6055,
+        6412,
+        7142,
+        7316,
+        7771,
+        8031,
+        7996,
+        7903,
+        8042,
+        7434,
+        47238
+      ]
+    },
+    "correlation": {
+      "labels": [
+        "Study Hours",
+        "Attendance",
+        "Participation",
+        "Final Score"
+      ],
+      "keys": [
+        "study_hours",
+        "attendance",
+        "participation",
+        "total_score"
+      ],
+      "matrix": [
+        [
+          1.0,
+          -0.0003,
+          0.0017,
+          0.8128
+        ],
+        [
+          -0.0003,
+          1.0,
+          -0.0044,
+          -0.0027
+        ],
+        [
+          0.0017,
+          -0.0044,
+          1.0,
+          0.0022
+        ],
+        [
+          0.8128,
+          -0.0027,
+          0.0022,
+          1.0
+        ]
+      ]
+    },
+    "decile_curves": {
+      "study_hours": [
+        {
+          "bin_label": "-0.0-6.0",
+          "bin_mid": 3.0,
+          "mean_score": 57.85,
+          "p25": 50.3,
+          "p75": 65.3,
+          "count": 15103
+        },
+        {
+          "bin_label": "6.0-9.1",
+          "bin_mid": 7.55,
+          "mean_score": 69.31,
+          "p25": 62.4,
+          "p75": 76.1,
+          "count": 15326
+        },
+        {
+          "bin_label": "9.1-11.3",
+          "bin_mid": 10.2,
+          "mean_score": 75.7,
+          "p25": 69.0,
+          "p75": 82.6,
+          "count": 15026
+        },
+        {
+          "bin_label": "11.3-13.2",
+          "bin_mid": 12.25,
+          "mean_score": 80.68,
+          "p25": 73.8,
+          "p75": 87.7,
+          "count": 14819
+        },
+        {
+          "bin_label": "13.2-15.0",
+          "bin_mid": 14.1,
+          "mean_score": 85.14,
+          "p25": 78.7,
+          "p75": 92.3,
+          "count": 14988
+        },
+        {
+          "bin_label": "15.0-16.8",
+          "bin_mid": 15.9,
+          "mean_score": 89.01,
+          "p25": 82.8,
+          "p75": 96.9,
+          "count": 15176
+        },
+        {
+          "bin_label": "16.8-18.7",
+          "bin_mid": 17.75,
+          "mean_score": 92.66,
+          "p25": 87.8,
+          "p75": 100.0,
+          "count": 15153
+        },
+        {
+          "bin_label": "18.7-20.9",
+          "bin_mid": 19.8,
+          "mean_score": 95.73,
+          "p25": 92.7,
+          "p75": 100.0,
+          "count": 14777
+        },
+        {
+          "bin_label": "20.9-23.9",
+          "bin_mid": 22.4,
+          "mean_score": 98.23,
+          "p25": 99.1,
+          "p75": 100.0,
+          "count": 14674
+        },
+        {
+          "bin_label": "23.9-40.0",
+          "bin_mid": 31.95,
+          "mean_score": 99.71,
+          "p25": 100.0,
+          "p75": 100.0,
+          "count": 14958
+        }
+      ],
+      "attendance": [
+        {
+          "bin_label": "50.0-72.1",
+          "bin_mid": 61.05,
+          "mean_score": 84.48,
+          "p25": 74.2,
+          "p75": 100.0,
+          "count": 15129
+        },
+        {
+          "bin_label": "72.1-76.5",
+          "bin_mid": 74.3,
+          "mean_score": 83.93,
+          "p25": 73.1,
+          "p75": 100.0,
+          "count": 14938
+        },
+        {
+          "bin_label": "76.5-79.7",
+          "bin_mid": 78.1,
+          "mean_score": 84.42,
+          "p25": 74.0,
+          "p75": 100.0,
+          "count": 15219
+        },
+        {
+          "bin_label": "79.7-82.4",
+          "bin_mid": 81.05,
+          "mean_score": 84.34,
+          "p25": 73.9,
+          "p75": 100.0,
+          "count": 14799
+        },
+        {
+          "bin_label": "82.4-85.0",
+          "bin_mid": 83.7,
+          "mean_score": 84.53,
+          "p25": 74.1,
+          "p75": 100.0,
+          "count": 15346
+        },
+        {
+          "bin_label": "85.0-87.5",
+          "bin_mid": 86.25,
+          "mean_score": 84.6,
+          "p25": 74.3,
+          "p75": 100.0,
+          "count": 14681
+        },
+        {
+          "bin_label": "87.5-90.2",
+          "bin_mid": 88.85,
+          "mean_score": 84.42,
+          "p25": 74.1,
+          "p75": 100.0,
+          "count": 15026
+        },
+        {
+          "bin_label": "90.2-93.4",
+          "bin_mid": 91.8,
+          "mean_score": 84.19,
+          "p25": 73.72,
+          "p75": 100.0,
+          "count": 15178
+        },
+        {
+          "bin_label": "93.4-97.8",
+          "bin_mid": 95.6,
+          "mean_score": 84.1,
+          "p25": 73.4,
+          "p75": 100.0,
+          "count": 14831
+        },
+        {
+          "bin_label": "97.8-100.0",
+          "bin_mid": 98.9,
+          "mean_score": 84.16,
+          "p25": 73.6,
+          "p75": 100.0,
+          "count": 14853
+        }
+      ],
+      "participation": [
+        {
+          "bin_label": "-0.0-3.4",
+          "bin_mid": 1.7,
+          "mean_score": 84.23,
+          "p25": 73.8,
+          "p75": 100.0,
+          "count": 15153
+        },
+        {
+          "bin_label": "3.4-4.3",
+          "bin_mid": 3.85,
+          "mean_score": 84.34,
+          "p25": 73.9,
+          "p75": 100.0,
+          "count": 15455
+        },
+        {
+          "bin_label": "4.3-4.9",
+          "bin_mid": 4.6,
+          "mean_score": 84.27,
+          "p25": 73.7,
+          "p75": 100.0,
+          "count": 14614
+        },
+        {
+          "bin_label": "4.9-5.5",
+          "bin_mid": 5.2,
+          "mean_score": 84.33,
+          "p25": 73.9,
+          "p75": 100.0,
+          "count": 16662
+        },
+        {
+          "bin_label": "5.5-6.0",
+          "bin_mid": 5.75,
+          "mean_score": 84.16,
+          "p25": 73.5,
+          "p75": 100.0,
+          "count": 14903
+        },
+        {
+          "bin_label": "6.0-6.5",
+          "bin_mid": 6.25,
+          "mean_score": 84.37,
+          "p25": 74.0,
+          "p75": 100.0,
+          "count": 14678
+        },
+        {
+          "bin_label": "6.5-7.0",
+          "bin_mid": 6.75,
+          "mean_score": 84.48,
+          "p25": 74.1,
+          "p75": 100.0,
+          "count": 13859
+        },
+        {
+          "bin_label": "7.0-7.7",
+          "bin_mid": 7.35,
+          "mean_score": 84.33,
+          "p25": 73.8,
+          "p75": 100.0,
+          "count": 16262
+        },
+        {
+          "bin_label": "7.7-8.5",
+          "bin_mid": 8.1,
+          "mean_score": 84.25,
+          "p25": 73.8,
+          "p75": 100.0,
+          "count": 13434
+        },
+        {
+          "bin_label": "8.5-10.0",
+          "bin_mid": 9.25,
+          "mean_score": 84.4,
+          "p25": 73.9,
+          "p75": 100.0,
+          "count": 14980
+        }
+      ]
+    },
+    "grade_distribution": [
+      {
+        "grade": "A",
+        "count": 82475,
+        "share": 0.5498333333333333
+      },
+      {
+        "grade": "B",
+        "count": 38550,
+        "share": 0.257
+      },
+      {
+        "grade": "C",
+        "count": 21323,
+        "share": 0.14215333333333333
+      },
+      {
+        "grade": "D",
+        "count": 6751,
+        "share": 0.04500666666666667
+      },
+      {
+        "grade": "F",
+        "count": 901,
+        "share": 0.006006666666666667
+      }
+    ],
+    "score_percentiles": [
+      {
+        "p": 0,
+        "score": 17.9
+      },
+      {
+        "p": 1,
+        "score": 43.0
+      },
+      {
+        "p": 2,
+        "score": 47.6
+      },
+      {
+        "p": 3,
+        "score": 50.6
+      },
+      {
+        "p": 4,
+        "score": 52.9
+      },
+      {
+        "p": 5,
+        "score": 54.8
+      },
+      {
+        "p": 6,
+        "score": 56.5
+      },
+      {
+        "p": 7,
+        "score": 58.0
+      },
+      {
+        "p": 8,
+        "score": 59.4
+      },
+      {
+        "p": 9,
+        "score": 60.6
+      },
+      {
+        "p": 10,
+        "score": 61.7
+      },
+      {
+        "p": 11,
+        "score": 62.8
+      },
+      {
+        "p": 12,
+        "score": 63.8
+      },
+      {
+        "p": 13,
+        "score": 64.7
+      },
+      {
+        "p": 14,
+        "score": 65.7
+      },
+      {
+        "p": 15,
+        "score": 66.6
+      },
+      {
+        "p": 16,
+        "score": 67.5
+      },
+      {
+        "p": 17,
+        "score": 68.3
+      },
+      {
+        "p": 18,
+        "score": 69.1
+      },
+      {
+        "p": 19,
+        "score": 69.8
+      },
+      {
+        "p": 20,
+        "score": 70.5
+      },
+      {
+        "p": 21,
+        "score": 71.2
+      },
+      {
+        "p": 22,
+        "score": 71.9
+      },
+      {
+        "p": 23,
+        "score": 72.6
+      },
+      {
+        "p": 24,
+        "score": 73.2
+      },
+      {
+        "p": 25,
+        "score": 73.8
+      },
+      {
+        "p": 26,
+        "score": 74.5
+      },
+      {
+        "p": 27,
+        "score": 75.1
+      },
+      {
+        "p": 28,
+        "score": 75.7
+      },
+      {
+        "p": 29,
+        "score": 76.3
+      },
+      {
+        "p": 30,
+        "score": 76.9
+      },
+      {
+        "p": 31,
+        "score": 77.5
+      },
+      {
+        "p": 32,
+        "score": 78.1
+      },
+      {
+        "p": 33,
+        "score": 78.6
+      },
+      {
+        "p": 34,
+        "score": 79.2
+      },
+      {
+        "p": 35,
+        "score": 79.7
+      },
+      {
+        "p": 36,
+        "score": 80.3
+      },
+      {
+        "p": 37,
+        "score": 80.8
+      },
+      {
+        "p": 38,
+        "score": 81.3
+      },
+      {
+        "p": 39,
+        "score": 81.8
+      },
+      {
+        "p": 40,
+        "score": 82.4
+      },
+      {
+        "p": 41,
+        "score": 82.9
+      },
+      {
+        "p": 42,
+        "score": 83.4
+      },
+      {
+        "p": 43,
+        "score": 84.0
+      },
+      {
+        "p": 44,
+        "score": 84.5
+      },
+      {
+        "p": 45,
+        "score": 85.0
+      },
+      {
+        "p": 46,
+        "score": 85.5
+      },
+      {
+        "p": 47,
+        "score": 86.0
+      },
+      {
+        "p": 48,
+        "score": 86.5
+      },
+      {
+        "p": 49,
+        "score": 87.1
+      },
+      {
+        "p": 50,
+        "score": 87.6
+      },
+      {
+        "p": 51,
+        "score": 88.1
+      },
+      {
+        "p": 52,
+        "score": 88.6
+      },
+      {
+        "p": 53,
+        "score": 89.1
+      },
+      {
+        "p": 54,
+        "score": 89.6
+      },
+      {
+        "p": 55,
+        "score": 90.1
+      },
+      {
+        "p": 56,
+        "score": 90.6
+      },
+      {
+        "p": 57,
+        "score": 91.1
+      },
+      {
+        "p": 58,
+        "score": 91.7
+      },
+      {
+        "p": 59,
+        "score": 92.2
+      },
+      {
+        "p": 60,
+        "score": 92.7
+      },
+      {
+        "p": 61,
+        "score": 93.2
+      },
+      {
+        "p": 62,
+        "score": 93.7
+      },
+      {
+        "p": 63,
+        "score": 94.3
+      },
+      {
+        "p": 64,
+        "score": 94.8
+      },
+      {
+        "p": 65,
+        "score": 95.3
+      },
+      {
+        "p": 66,
+        "score": 95.9
+      },
+      {
+        "p": 67,
+        "score": 96.4
+      },
+      {
+        "p": 68,
+        "score": 97.0
+      },
+      {
+        "p": 69,
+        "score": 97.5
+      },
+      {
+        "p": 70,
+        "score": 98.1
+      },
+      {
+        "p": 71,
+        "score": 98.7
+      },
+      {
+        "p": 72,
+        "score": 99.3
+      },
+      {
+        "p": 73,
+        "score": 99.9
+      },
+      {
+        "p": 74,
+        "score": 100.0
+      },
+      {
+        "p": 75,
+        "score": 100.0
+      },
+      {
+        "p": 76,
+        "score": 100.0
+      },
+      {
+        "p": 77,
+        "score": 100.0
+      },
+      {
+        "p": 78,
+        "score": 100.0
+      },
+      {
+        "p": 79,
+        "score": 100.0
+      },
+      {
+        "p": 80,
+        "score": 100.0
+      },
+      {
+        "p": 81,
+        "score": 100.0
+      },
+      {
+        "p": 82,
+        "score": 100.0
+      },
+      {
+        "p": 83,
+        "score": 100.0
+      },
+      {
+        "p": 84,
+        "score": 100.0
+      },
+      {
+        "p": 85,
+        "score": 100.0
+      },
+      {
+        "p": 86,
+        "score": 100.0
+      },
+      {
+        "p": 87,
+        "score": 100.0
+      },
+      {
+        "p": 88,
+        "score": 100.0
+      },
+      {
+        "p": 89,
+        "score": 100.0
+      },
+      {
+        "p": 90,
+        "score": 100.0
+      },
+      {
+        "p": 91,
+        "score": 100.0
+      },
+      {
+        "p": 92,
+        "score": 100.0
+      },
+      {
+        "p": 93,
+        "score": 100.0
+      },
+      {
+        "p": 94,
+        "score": 100.0
+      },
+      {
+        "p": 95,
+        "score": 100.0
+      },
+      {
+        "p": 96,
+        "score": 100.0
+      },
+      {
+        "p": 97,
+        "score": 100.0
+      },
+      {
+        "p": 98,
+        "score": 100.0
+      },
+      {
+        "p": 99,
+        "score": 100.0
+      },
+      {
+        "p": 100,
+        "score": 100.0
+      }
+    ],
+    "target_summary": {
+      "mean": 84.32,
+      "median": 87.6,
+      "std": 15.43,
+      "min": 17.9,
+      "max": 100.0,
+      "ceiling_share": 0.2688
+    }
+  },
+  "training_seconds": 16.7
+}

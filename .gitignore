@@ -37,6 +37,9 @@ venv/
 # Environment variables
 .env
 
-# Trained model artifacts -- regenerate with `python model/train_model.py`
-# (~51s on the full dataset). Kept out of git: ~52MB of binary pickles.
-server/model/artifacts/
+# Trained model artifacts ARE committed (~3.7MB, built with --lite) so that a
+# deploy needs nothing but `pip install`. Regenerate with:
+#     python model/train_model.py --lite
+# A full-fidelity local run (`python model/train_model.py`, ~51s on 1M rows)
+# produces ~54MB of pickles -- do not commit those.
+server/model/artifacts/*.pkl.full

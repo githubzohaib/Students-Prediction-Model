@@ -6,13 +6,18 @@ import { cx } from "../../lib/format";
 /* ------------------------------------------------------------------ Card */
 
 export function Card({
-  children, className, as: Tag = "section",
+  children, className, as: Tag = "section", hover = false,
 }: {
   children: ReactNode;
   className?: string;
   as?: "section" | "div" | "article";
+  hover?: boolean;
 }) {
-  return <Tag className={cx("card p-5", className)}>{children}</Tag>;
+  return (
+    <Tag className={cx("card p-5", hover && "card-hover", className)}>
+      {children}
+    </Tag>
+  );
 }
 
 export function CardHeader({
@@ -26,7 +31,17 @@ export function CardHeader({
   return (
     <header className="mb-4 flex items-start justify-between gap-4">
       <div className="flex min-w-0 items-start gap-3">
-        {icon && <span className="mt-0.5 shrink-0 text-muted">{icon}</span>}
+        {icon && (
+          <span
+            className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+            style={{
+              backgroundColor: "color-mix(in srgb, var(--accent) 12%, transparent)",
+              color: "var(--accent)",
+            }}
+          >
+            {icon}
+          </span>
+        )}
         <div className="min-w-0">
           <h2 className="text-sm font-semibold tracking-tight text-ink">{title}</h2>
           {subtitle && (
@@ -45,9 +60,9 @@ type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const BUTTON_STYLES: Record<ButtonVariant, string> = {
   primary:
-    "bg-[var(--series-1)] text-white hover:opacity-90 disabled:opacity-40",
+    "gradient-bg text-white shadow-sm hover:shadow-glow hover:-translate-y-px active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-sm",
   secondary:
-    "bg-surface-2 text-ink border border-hairline hover:bg-surface-3 disabled:opacity-40",
+    "bg-surface text-ink border border-hairline hover:border-hairline-strong hover:bg-surface-2 disabled:opacity-40",
   ghost:
     "text-ink-2 hover:bg-surface-2 hover:text-ink disabled:opacity-40",
   danger:
@@ -75,8 +90,8 @@ export function Button({
       onClick={onClick}
       disabled={disabled || loading}
       className={cx(
-        "inline-flex items-center justify-center gap-2 rounded-md font-medium",
-        "transition-colors disabled:cursor-not-allowed",
+        "inline-flex items-center justify-center gap-2 rounded-lg font-medium",
+        "transition-all duration-150 disabled:cursor-not-allowed",
         size === "sm" ? "px-2.5 py-1.5 text-xs" : "px-4 py-2 text-sm",
         BUTTON_STYLES[variant],
         className,
@@ -103,9 +118,18 @@ export function Badge({
       className={cx(
         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5",
         "text-xs font-medium",
-        subtle ? "bg-surface-2 text-ink-2" : "text-white",
+        subtle ? "bg-surface-2 text-ink-2" : "text-white shadow-sm",
       )}
-      style={subtle ? undefined : { backgroundColor: color ?? "var(--series-1)" }}
+      style={
+        subtle
+          ? {
+              backgroundColor: color
+                ? `color-mix(in srgb, ${color} 14%, transparent)`
+                : undefined,
+              color: color ?? undefined,
+            }
+          : { backgroundColor: color ?? "var(--accent)" }
+      }
     >
       {icon}
       {children}
@@ -129,14 +153,20 @@ export function Stat({
     tone === "good" ? "var(--success-text)"
       : tone === "bad" ? "var(--critical)"
         : undefined;
+  const barColor = toneColor ?? accent ?? "var(--accent)";
 
   return (
-    <div className="card p-4">
+    <div className="card card-hover relative overflow-hidden p-4">
+      <span
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-0.5"
+        style={{ backgroundColor: barColor, opacity: 0.7 }}
+      />
       <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
         {label}
       </p>
       <p
-        className="mt-1.5 text-2xl font-semibold leading-none"
+        className="mt-1.5 text-2xl font-semibold leading-none tracking-tight"
         style={{ color: toneColor ?? accent ?? "var(--ink)" }}
       >
         {value}
@@ -192,8 +222,9 @@ export function Select({
       value={value}
       onChange={(event) => onChange(event.target.value)}
       className={cx(
-        "w-full rounded-md border border-hairline bg-surface px-3 py-2",
+        "w-full rounded-lg border border-hairline bg-surface px-3 py-2",
         "text-sm text-ink transition-colors hover:border-hairline-strong",
+        "focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20",
         className,
       )}
     >
@@ -231,8 +262,9 @@ export function NumberInput({
           if (!Number.isNaN(next)) onChange(next);
         }}
         className={cx(
-          "tabular w-full rounded-md border border-hairline bg-surface",
+          "tabular w-full rounded-lg border border-hairline bg-surface",
           "px-3 py-2 text-sm text-ink transition-colors hover:border-hairline-strong",
+          "focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20",
           suffix && "pr-12",
         )}
       />
@@ -265,7 +297,7 @@ export function ErrorState({
   return (
     <div
       role="alert"
-      className="flex flex-col items-start gap-3 rounded-md border p-4"
+      className="flex flex-col items-start gap-3 rounded-lg border p-4"
       style={{
         borderColor: "var(--critical)",
         backgroundColor: "color-mix(in srgb, var(--critical) 8%, transparent)",
@@ -299,7 +331,17 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
-      {icon && <div className="text-muted">{icon}</div>}
+      {icon && (
+        <div
+          className="flex h-11 w-11 items-center justify-center rounded-full"
+          style={{
+            backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
+            color: "var(--accent)",
+          }}
+        >
+          {icon}
+        </div>
+      )}
       <div>
         <p className="text-sm font-medium text-ink">{title}</p>
         <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-ink-2">

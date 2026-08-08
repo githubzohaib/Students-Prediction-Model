@@ -37,7 +37,7 @@ function Slider({
       value={value}
       aria-label={feature.label}
       onChange={(event) => onChange(Number(event.target.value))}
-      className="spm-slider h-1.5 w-full cursor-pointer appearance-none rounded-full"
+      className="spm-slider h-2 w-full cursor-pointer appearance-none rounded-full"
       style={{
         background: `linear-gradient(90deg, ${color} ${ratio}%, var(--surface-3) ${ratio}%)`,
         // Consumed by the thumb rules in the style block below.
@@ -66,20 +66,34 @@ export function StudentInputs({
   return (
     <div className="flex flex-col gap-5">
       <style>{`
+        .spm-slider {
+          transition: box-shadow 0.15s ease;
+        }
         .spm-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
-          height: 16px; width: 16px; border-radius: 999px;
+          height: 17px; width: 17px; border-radius: 999px;
           background: var(--thumb);
-          border: 2px solid var(--surface);
-          box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+          border: 2.5px solid var(--surface);
+          box-shadow: 0 1px 4px rgba(0,0,0,0.25), 0 0 0 1px color-mix(in srgb, var(--thumb) 40%, transparent);
           cursor: pointer;
+          transition: transform 0.12s ease;
+        }
+        .spm-slider::-webkit-slider-thumb:hover {
+          transform: scale(1.15);
+        }
+        .spm-slider:focus-visible::-webkit-slider-thumb {
+          box-shadow: 0 0 0 4px color-mix(in srgb, var(--thumb) 30%, transparent);
         }
         .spm-slider::-moz-range-thumb {
-          height: 16px; width: 16px; border-radius: 999px;
+          height: 17px; width: 17px; border-radius: 999px;
           background: var(--thumb);
-          border: 2px solid var(--surface);
-          box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+          border: 2.5px solid var(--surface);
+          box-shadow: 0 1px 4px rgba(0,0,0,0.25), 0 0 0 1px color-mix(in srgb, var(--thumb) 40%, transparent);
           cursor: pointer;
+          transition: transform 0.12s ease;
+        }
+        .spm-slider::-moz-range-thumb:hover {
+          transform: scale(1.15);
         }
       `}</style>
 

@@ -4,90 +4,107 @@
 
 /* ------------------------------------------------------------------
    Design tokens.
-   Both themes are deliberately selected: the dark column is the same
-   hues re-stepped for the dark surface, not an automatic inversion.
+   Clean modern SaaS: soft neutral surfaces, an indigo -> blue gradient
+   as the single accent, generous radius, quiet shadows. Both themes
+   are deliberately selected: the dark column is re-stepped for the
+   dark surface, not an automatic inversion.
    ------------------------------------------------------------------ */
 @layer base {
   :root {
     color-scheme: light;
 
-    --page: #f9f9f7;
-    --surface: #fcfcfb;
-    --surface-2: #f2f2ef;
-    --surface-3: #e9e9e5;
+    --page: #f6f7fb;
+    --surface: #ffffff;
+    --surface-2: #f1f2f9;
+    --surface-3: #e6e8f3;
 
-    --ink: #0b0b0b;
-    --ink-2: #52514e;
-    --muted: #898781;
+    --ink: #10121c;
+    --ink-2: #53566e;
+    --muted: #8b8ea3;
 
-    --grid: #e1e0d9;
-    --baseline: #c3c2b7;
-    --border: rgba(11, 11, 11, 0.1);
-    --border-strong: rgba(11, 11, 11, 0.18);
+    --grid: #ebecf5;
+    --baseline: #d4d6e6;
+    --border: rgba(16, 18, 28, 0.08);
+    --border-strong: rgba(16, 18, 28, 0.16);
+
+    /* Brand accent: indigo -> blue. Every gradient in the app is built
+       from these two stops so the whole UI reads as one system. */
+    --accent: #4f46e5;
+    --accent-2: #2563eb;
+    --accent-ink: #ffffff;
+    --gradient: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
 
     /* Categorical slots 1-3 -- validated all-pairs in both modes. */
-    --series-1: #2a78d6;
-    --series-2: #eb6834;
-    --series-3: #1baf7a;
+    --series-1: #4f46e5;
+    --series-2: #f59e0b;
+    --series-3: #0d9488;
 
     /* Status palette: fixed, never themed, always paired with a label. */
-    --good: #0ca30c;
-    --warning: #fab219;
-    --serious: #ec835a;
-    --critical: #d03b3b;
-    --success-text: #006300;
+    --good: #16a34a;
+    --warning: #d97706;
+    --serious: #ea580c;
+    --critical: #dc2626;
+    --success-text: #15803d;
 
-    /* Ordinal blue ramp for grade bands (A darkest -> F lightest). */
-    --grade-a: #104281;
-    --grade-b: #1c5cab;
-    --grade-c: #2a78d6;
-    --grade-d: #5598e7;
-    --grade-f: #86b6ef;
+    /* Ordinal indigo ramp for grade bands (A darkest -> F lightest). */
+    --grade-a: #3730a3;
+    --grade-b: #4f46e5;
+    --grade-c: #6d64ec;
+    --grade-d: #9992f2;
+    --grade-f: #c3bdf7;
 
-    --shadow-sm: 0 1px 2px rgba(11, 11, 11, 0.06);
-    --shadow-md: 0 4px 16px rgba(11, 11, 11, 0.08);
-    --shadow-lg: 0 12px 40px rgba(11, 11, 11, 0.12);
+    --shadow-sm: 0 1px 2px rgba(16, 18, 28, 0.05), 0 1px 1px rgba(16, 18, 28, 0.04);
+    --shadow-md: 0 8px 24px -4px rgba(16, 18, 28, 0.10), 0 2px 8px -2px rgba(16, 18, 28, 0.06);
+    --shadow-lg: 0 24px 56px -12px rgba(16, 18, 28, 0.20), 0 8px 20px -6px rgba(16, 18, 28, 0.10);
+    --shadow-glow: 0 8px 24px -6px rgba(79, 70, 229, 0.35);
 
-    --radius: 0.75rem;
+    --radius: 1rem;
   }
 
   .dark {
     color-scheme: dark;
 
-    --page: #0d0d0d;
-    --surface: #1a1a19;
-    --surface-2: #232322;
-    --surface-3: #2c2c2a;
+    --page: #0a0b12;
+    --surface: #14151f;
+    --surface-2: #1a1c29;
+    --surface-3: #232538;
 
-    --ink: #ffffff;
-    --ink-2: #c3c2b7;
-    --muted: #898781;
+    --ink: #f5f6fb;
+    --ink-2: #b7bad2;
+    --muted: #82859e;
 
-    --grid: #2c2c2a;
-    --baseline: #383835;
-    --border: rgba(255, 255, 255, 0.1);
-    --border-strong: rgba(255, 255, 255, 0.18);
+    --grid: #23253a;
+    --baseline: #31344d;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.16);
 
-    --series-1: #3987e5;
-    --series-2: #d95926;
-    --series-3: #199e70;
+    --accent: #818cf8;
+    --accent-2: #60a5fa;
+    --accent-ink: #0a0b12;
+    --gradient: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
 
-    --good: #0ca30c;
-    --warning: #fab219;
-    --serious: #ec835a;
-    --critical: #d03b3b;
-    --success-text: #0ca30c;
+    --series-1: #818cf8;
+    --series-2: #fbbf24;
+    --series-3: #2dd4bf;
 
-    /* Re-stepped for the dark surface: no step darker than 600 (2.15:1). */
-    --grade-a: #b7d3f6;
-    --grade-b: #86b6ef;
-    --grade-c: #5598e7;
-    --grade-d: #2a78d6;
-    --grade-f: #184f95;
+    --good: #22c55e;
+    --warning: #f59e0b;
+    --serious: #fb923c;
+    --critical: #f87171;
+    --success-text: #4ade80;
+
+    /* Re-stepped for the dark surface: no step darker than needed for
+       AA against --surface. */
+    --grade-a: #c3bdf7;
+    --grade-b: #a29bf4;
+    --grade-c: #818cf8;
+    --grade-d: #6366d6;
+    --grade-f: #4c46a8;
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
+    --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, 0.45), 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 24px 56px -12px rgba(0, 0, 0, 0.6), 0 8px 20px -6px rgba(0, 0, 0, 0.4);
+    --shadow-glow: 0 8px 28px -4px rgba(129, 140, 248, 0.45);
   }
 
   * {
@@ -101,7 +118,7 @@
   body {
     background-color: var(--page);
     color: var(--ink);
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -112,21 +129,65 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--series-1);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
+    border-radius: 4px;
   }
 
   ::selection {
-    background: color-mix(in srgb, var(--series-1) 28%, transparent);
+    background: color-mix(in srgb, var(--accent) 28%, transparent);
   }
 }
 
 @layer components {
+  .page-bg {
+    background-image:
+      radial-gradient(circle at 12% -8%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 42%),
+      radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--accent-2) 8%, transparent), transparent 38%);
+    background-attachment: fixed;
+  }
+
   .card {
     background-color: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .card-hover:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
+  }
+
+  .gradient-bg {
+    background-image: var(--gradient);
+  }
+
+  .gradient-text {
+    background-image: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .gradient-ring {
+    position: relative;
+  }
+
+  .gradient-ring::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background-image: var(--gradient);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.55;
   }
 
   .scroll-x {
@@ -157,6 +218,11 @@
 @keyframes shimmer {
   0% { background-position: 100% 50%; }
   100% { background-position: 0 50%; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {

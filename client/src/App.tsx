@@ -83,15 +83,15 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-page">
-      <header className="sticky top-0 z-20 border-b border-hairline bg-page/85 backdrop-blur">
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-4 px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-2.5">
+    <div className="page-bg min-h-screen bg-page">
+      <header className="sticky top-0 z-20 border-b border-hairline bg-page/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-4 px-4 py-3.5 sm:px-6">
+          <div className="flex items-center gap-3">
             <span
-              className="flex h-9 w-9 items-center justify-center rounded-lg"
-              style={{ backgroundColor: "var(--series-1)" }}
+              className="gradient-bg flex h-10 w-10 items-center justify-center rounded-xl shadow-glow"
+              aria-hidden
             >
-              <GraduationCap size={19} color="#fff" aria-hidden />
+              <GraduationCap size={20} color="#fff" strokeWidth={2.25} />
             </span>
             <div>
               <h1 className="text-sm font-semibold leading-tight tracking-tight text-ink">
@@ -107,25 +107,25 @@ export default function App() {
 
           <div className="ml-auto flex items-center gap-3">
             {health.data && (
-              <span className="hidden items-center gap-1.5 text-[11px] text-ink-2 sm:flex">
+              <span className="hidden items-center gap-1.5 rounded-full bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-ink-2 sm:flex">
                 <span
                   className="inline-block h-1.5 w-1.5 rounded-full"
-                  style={{ backgroundColor: "var(--good)" }}
+                  style={{ backgroundColor: "var(--good)", boxShadow: "0 0 0 3px color-mix(in srgb, var(--good) 20%, transparent)" }}
                   aria-hidden
                 />
                 API v{health.data.version}
               </span>
             )}
             {health.error && (
-              <span className="hidden items-center gap-1.5 text-[11px] sm:flex"
-                    style={{ color: "var(--critical)" }}>
+              <span className="hidden items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium sm:flex"
+                    style={{ color: "var(--critical)", backgroundColor: "color-mix(in srgb, var(--critical) 10%, transparent)" }}>
                 <Activity size={12} aria-hidden />
                 API unreachable
               </span>
             )}
             <button
               onClick={toggle}
-              className="rounded-md p-2 text-ink-2 transition-colors hover:bg-surface-2 hover:text-ink"
+              className="rounded-lg p-2 text-ink-2 transition-colors hover:bg-surface-2 hover:text-ink"
               aria-label={`Switch to ${resolved === "dark" ? "light" : "dark"} theme`}
               title={`Switch to ${resolved === "dark" ? "light" : "dark"} theme`}
             >
@@ -134,30 +134,32 @@ export default function App() {
           </div>
         </div>
 
-        <nav aria-label="Sections" className="mx-auto max-w-[1400px] px-4 sm:px-6">
-          <div className="scroll-x -mb-px flex gap-1">
-            {TABS.map((item) => {
-              const Icon = item.icon;
-              const active = tab === item.key;
-              return (
-                <button
-                  key={item.key}
-                  onClick={() => setTab(item.key)}
-                  aria-current={active ? "page" : undefined}
-                  title={item.blurb}
-                  className={cx(
-                    "flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5",
-                    "text-xs font-medium transition-colors",
-                    active
-                      ? "border-[var(--series-1)] text-ink"
-                      : "border-transparent text-muted hover:text-ink-2",
-                  )}
-                >
-                  <Icon size={14} aria-hidden />
-                  {item.label}
-                </button>
-              );
-            })}
+        <nav aria-label="Sections" className="mx-auto max-w-[1400px] px-4 pb-3 sm:px-6">
+          <div className="scroll-x">
+            <div className="flex w-fit gap-1 rounded-full bg-surface-2/70 p-1">
+              {TABS.map((item) => {
+                const Icon = item.icon;
+                const active = tab === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => setTab(item.key)}
+                    aria-current={active ? "page" : undefined}
+                    title={item.blurb}
+                    className={cx(
+                      "flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5",
+                      "text-xs font-medium transition-all duration-150",
+                      active
+                        ? "gradient-bg text-white shadow-sm"
+                        : "text-muted hover:bg-surface-3 hover:text-ink",
+                    )}
+                  >
+                    <Icon size={14} aria-hidden />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </nav>
       </header>
